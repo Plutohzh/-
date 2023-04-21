@@ -1,0 +1,851 @@
+import random
+import time
+
+# 用于生成随机属性值的函数
+def generate_stats():
+    age = random.randint(25,40)
+    sex = random.choice(['男', '女'])
+    positions = ['科级', '副处级', '正处级', '厅局级副职', '厅局级正职', '省部级副职', '省部级正职', '国家级副职', '国家级正职']
+    degrees = ['高中', '大专', '本科', '硕士研究生','博士研究生']
+    assest = random.randint(3,30)
+    tec = random.randint(20,70)
+    exp = random.randint(20,70)
+    seval = random.randint(0,20)
+    deval = random.randint(-10,30)
+    health = random.randint(50,100)
+    return (age, sex, positions, degrees, assest, tec, exp, seval, deval, health)
+
+# 生成随机属性
+age, sex, positions, degrees, assest, tec, exp, seval, deval, health = generate_stats()
+#这里指定了一些数值的值，例如职位，如果想开局国家级正职、爆改资产等可以在这里修改
+dposition = 0
+ddegree = random.randint(0,4)
+position = positions[dposition]
+degree = degrees[ddegree]
+turn =0  # 游戏已进行的回合
+#游戏结束事件
+def endgame():
+    print('以下是你游戏结束时的状态：')
+    print('游戏回合数:',turn)
+    print('姓名:', name)
+    print('年龄:', age)
+    print('性别:', sex)
+    print('职位:', position)
+    print('学历:', degree)
+    print('资产:', assest)
+    print('技术能力:', tec)
+    print('表达能力:', exp)
+    print('明面评价:', seval)
+    print('暗中评价:', deval)
+    print('身心健康值:', health)
+    return False
+
+#事件函数
+#这里前几十个事件都是相对通用的事件，也就是event后面接编号。如果可以完善，我想给不同职位安排不同的可能遇到的事件。
+#例如，除去这些通用事件，当你成为厅局级时，会遭遇一些科员绝对不可能接触到的比较大的事件，在事件中扮演的身份也不一样。
+#就可以写成def event_k1\c1\t1\s1\g1等。但是工程量必然增大。所以我准备先一步步把基本的框架做好。
+#另外，我还设想过，把工作类、家庭类、日常类事件各自编号，可以初步进行一些分类。不过由于现在事件总数还是很少的，就先不这么做了。
+def event1():
+    global seval
+    global deval
+    global health
+    while True:
+        print('在一次机关会议上，领导想要将一项属于同级其他部门的繁杂业务工作分配给你。')
+        choice = input('是否接受这项工作？（输入1拒绝，输入2接受并自己做，输入3接受并让手下做）：')
+        if choice == '1':
+            if seval < 50:
+                print('你拒绝了领导，领导皱了皱眉头，继续开会。但是你显然感受到气氛不对劲。')
+                deval -= 10
+                return deval, seval, health
+            else:
+                print('你拒绝了领导，但由于你在领导面前的形象不错，领导并没有当面指责你什么。')
+                deval -= 5
+                return deval, seval, health
+        elif choice == '2':
+            if tec < 60:
+                print('你接受了工作，每天加班加点试图完成，但由于能力不足干砸了。你遭到了批评，大家也在暗中嘲笑你没有金刚钻偏揽瓷器活的行为')
+                seval -= 5
+                deval -= 5
+                health -= 10
+                return deval, seval, health
+            else:
+                seval += 10
+                health -= 10
+                print('你接受了工作，并加班加点完成了。由于表现突出，你得到了表扬，但是你感觉自己身体有些不舒服')
+                return deval, seval, health
+        elif choice == '3':
+            print('你将工作分配给了下属，他们赶在截止时间前完成了工作，但是他们背地里开始说你的坏话。')
+            deval -= 10
+            return deval, seval, health
+        else:
+            print('请重新输入！')
+
+def event2():
+    while True:
+        print("这几个月工作不多，单位里大家时间都比较充裕。你发现有一名下属经常在工作时间干私事。")
+        choice = input("你打算怎么处理?（输入1不管理，输入2管理）：")
+        global seval
+        global deval
+        if choice == "1":  
+            chance = random.random()
+            if chance < 0.5:
+                print("你的几名下属这几个月过得都比较轻松，大家暗地里都称赞你不干预他们。")
+                deval += 5
+                return deval, seval
+            else:
+                print("你没有管你的下属，但是有一天上级来取物料，单位中居然没有一个人在岗。领导非常愤怒，在机关会议上严肃批评了你。")
+                seval -= 10
+                return deval, seval
+        elif choice == "2":
+            chance = random.random()
+            if chance < 0.3:  
+                print("你指出这名下属的错误，但是他背后竟然是你的领导！虽然明面上你因为严明纪律得到了表扬，但是你总感觉领导的眼神不对。")
+                seval += 5
+                deval -= 10
+                return deval, seval
+            else:
+                print("和你同级的另外一个单位因为领导查岗时不少人旷工遭到了批评，而你则因为严明纪律得到了领导的点名表扬")
+                seval += 10
+                return deval, seval
+        else:
+            print('请重新输入！')
+    
+
+def event3():
+    while True:
+        print("领导要求每天都要转发他发给你的消息，但是下属认为有的消息是纯废话，经常转发的话，时不时看手机会影响他们正常工作的效率。")
+        choice = input("你打算怎么解决？（输入1每隔一段时间整合后发给下属，输入2仍旧每次立刻转发）：")
+        global seval
+        global deval
+        if choice == "1":  
+            chance = random.random()
+            if chance < 0.5:
+                print("你每隔一段时间把消息传达下去，但好巧不巧，有一次领导巡查，问下属最近一次会议强调的精神时下属答不出来，查出是你没有传达，把你狠狠批评一番")
+                seval -= 10
+                return deval, seval
+            else:
+                print("你每隔一段时间把消息传达下去，下属们都觉得你乐于听取建议，认可你的行为")
+                deval += 5
+                return deval, seval
+        elif choice == "2":
+            print("下属们认为你拒绝听取他们的建议，对你产生了不满")
+            deval -= 5
+            return deval, seval
+        else:
+            print('请重新输入！')
+
+def event4():
+    while True:
+        print("领导准备邀请大家一起去实地考察（旅游），要求你安排一下报销。")
+        choice = input("你打算怎么处理？（输入1报销、输入2用自己的钱垫付、输入3拒绝报销）:")
+        global seval
+        global deval
+        global dposition
+        global assest
+        global position
+        if choice == "1":
+            chance = random.random()
+            if chance < 0.3:
+                print("由于有人暗中想要弄你，检举并查出你违规报销的行为。你遭到了严重批评，并被降职。")
+                seval -= 10
+                dposition -=1
+                if dposition <0:
+                    dposition = 0
+                position = positions[dposition]
+                return deval, seval, dposition ,assest ,position
+            else:
+                print("你悄悄地把几乎所有的费用都报销了，领导们很满意，都觉得你是一个懂变通的人。")
+                deval += 10
+                return deval, seval, dposition ,assest ,position
+        elif choice == "2": 
+            print("你用你自己的钱垫付，领导们显然不知情，但仍觉得你是一个懂规矩的人。")
+            deval += 10
+            assest -= 10
+            return deval, seval, dposition ,assest ,position
+        elif choice == "3":
+            print("你义正言辞地拒绝了报销，但是让领导难堪。")
+            deval_change -= 10
+            return deval, seval, dposition ,assest ,position
+        else:
+            print('请重新输入！')
+
+def event5():
+    while True:
+        print("领导下发了新的文件，要求每一个人都深入学习，并让你负责组织下属们考试。")
+        choice = input("你打算怎么做？（输入1贿赂监考人员，输入2实事求是地考试，输入3考试后暗中修改分数）：")
+        global seval
+        global deval
+        global assest
+        if choice == "1":
+            print("你贿赂了监考，你的下属们都抄出了不错的成绩，领导和下属都比较满意。")
+            deval += 5
+            seval += 5
+            assest -= 5
+            return
+        elif choice == "2":
+            chance = random.random()
+            if chance < 0.4:
+                print("由于这些文件实在是内容太多并脱离实际，考试成绩一塌糊涂。领导和下属都对你心生不满。")
+                deval -= 10
+                seval -= 5
+                return
+            else:
+                print("虽然文件内容很多，但你的下属们还是尽力考过了。你的部门得到了表扬，但是下属们显然很不爽。")
+                deval -= 5
+                seval += 5
+                return
+        elif choice == "3":
+            chance = random.random()
+            if chance < 0.7:
+                print("你考试后想要修改分数，但被发现了，上级在某次会议上批评了你。")
+                seval -= 5
+                return
+            else:
+                print("你成功地修改了下属的考试成绩，上级也满意，下属们也开心。")
+                deval += 5
+                seval += 5
+                return
+        else:
+            print('请重新输入！')
+
+#从第六个事件开始，我突然意识到，哦豁，我可以直接用return这个事件函数来实现错误重输，而不必用那个鬼循环来造屎山。
+#另外，global后面可以跟着多个变量，并且使用全局变量后不必return一个具体的值。
+
+def event6():
+    print("你的亲戚请求，利用你的职务之便来办一些私事。")
+    global deval, seval, health, assest
+    choice = input("你打算怎么做？（输入1拿钱干事，输入2收下钱但是把事情吊着不干，输入3拒绝贿赂）：")
+    if choice == "1":
+        print("你接受了亲戚的贿赂，并帮他们办好了事情，亲戚在某次酒局炫耀时说出了你，结果这件事传到了单位其他人耳中。还好风头过去了，你没有被明面批评。")
+        deval -= 5
+        assest += 10
+    elif choice == "2":
+        print("你收下了亲戚的礼品，但这件事却被你高高挂起。你的亲戚一开始还以为是钱没给够，但不久发现了不对劲，立马揭发你的腐败，你遭到了严重的批评。")
+        seval -= 10
+        assest += 15
+    elif choice == "3":  
+        print("你拒绝了亲戚的贿赂，但之后亲戚前来单位闹事，弄得你将近一个月没能好好办公、休息。")
+        health -= 10
+    else:
+        print("请重新输入！")
+        return event6()
+    return
+
+def event7():
+    print("你有一名理工科出身的手下，他非常能干，但不太会处理人际关系，和同事的关系也不太好。你可以：")
+    global deval, seval, health, assest, tec
+    choice = input("你打算怎么做？（输入1提拔他，输入2维持现状，输入3写信将他调离）：")
+    if choice == "1":  
+        print("你提拔了他成为了自己的左右手，虽然让你的办事效率上升了，但是其他属下显然感到不满。")
+        deval -= 5
+        tec += 5
+    elif choice == "2":
+        chance = random.random()
+        if chance < 0.3:
+            print("他很快就因为不满而辞职了，辞职以后写了一篇文章抨击你单位的僵化，在媒体的助推下把你推上风口浪尖。你的领导马上召开会议批评了你。")
+            seval -= 10
+        else:
+            print("他很快就因为不满而辞职了，但是像他这样不会表达的人，再对单位不满也只会把事情憋在心里。")
+    elif choice == "3":
+        print("你决定将这位手下调离本单位，离了他，单位的工作效率显著下降。但其他下属可不害怕工作效率低。")
+        deval += 5
+        tec -= 10
+        if tec < 0:
+            tec=0
+    else:
+        print("请重新输入！")
+        return event7()
+    return
+
+def event8():
+    print("你的兄弟单位负责的一个项目遭遇了一些困境，他们准备向你的单位请求一些帮助：")
+    global assest, tec, exp, seval, deval ,dposition ,position ,positions
+    choice = input("你打算怎么做？（输入1利用资产帮助兄弟单位，输入2接受请求接管工作并尽力应对，输入3事不关己高高挂起）：")
+    if choice == "1":  
+        need_assest = random.randint(15,20)
+        if assest < 20:
+            print("你的资产不足，请重新输入！")
+            return event8()
+        else:
+            print("你成功化解了这次危机，兄弟单位非常感激你，上级给你发了一点奖金弥补你的损失。")
+            assest -= need_assest
+            seval += 10
+            deval += 10
+    elif choice == "2":
+        if tec >= 70 or exp >= 70:
+            print("全单位全力努力，最终让项目得以软着陆，你的兄弟单位很感谢你，领导也在几次大会上点名表扬了你")
+            if tec >= 60 and exp >= 70:
+                seval += 10
+                deval += 10
+            else:
+                seval += 5
+                deval += 5
+        else:
+            print("你单位的能力不足，无法成功解决问题，项目遭遇了严重挫败。全单位的工资与津贴下滑，你也被降职。")
+            assest -= 5
+            dposition -=1
+            if dposition <0:
+                dposition = 0
+            position = positions[dposition]
+            seval -= 10
+            deval -= 10
+    elif choice == "3":
+        print("你毫不关心兄弟单位的困境，提供了除了实质帮助以外的一切支持，最终兄弟单位的项目彻底崩盘。全单位的工资与津贴下滑，但还好你划清界限不用担责。")
+        assest -= 5
+        deval -= 10
+    else:
+        print("请重新输入！")
+        return event8()
+    return
+
+
+
+def event9():
+    print("上级要求你提供十年以前的一些数据，但是单位早就将数据按规定销毁了。")
+    global seval, tec, exp ,deval
+    choice = input("你打算怎么做？（输入1实事求是，输入2捏造数据）：")
+    if choice == "1":
+        print("你如实汇报数据已经被销毁，但上级认为你对工作不负责，批评了你。")
+        seval -= 5
+        deval -= 5
+    elif choice == "2":
+        if exp >= 65:
+            print("你成功捏造了数据，上级有人质问你数据来源与可靠性，由于数据销毁，所以主动权掌握在你手上，你用你的沟通技巧化解了质疑，还赢得了表扬。")
+            seval += 10
+        else:
+            if random.random() < 0.4:
+                print("你捏造的数据由于过于离谱，被上级发现了，在一次会议上领导严肃批评了你不务实的作风。")
+                seval -= 10
+                deval -= 5
+            else:
+                print("你捏造的数据显然有问题，但是因为这个数据本来就不是很重要，上级领导就没有深究你的责任。")
+                deval -=5
+    else:
+        print("请重新输入！")
+        return event9()
+    return
+
+def event10():
+    print("你和领导外出办事，因为领导倒车不谨慎，和当地住户的车撞在了一起，产生冲突。你决定：")
+    global assest, deval, seval, exp
+    choice = input("你打算怎么做？（输入1花钱消灾，输入2无视住户，输入3装作有事离开，输入4进行交涉）：")
+    if choice == "1":  
+        need_assest = random.randint(1, 10)
+        if assest < need_assest:
+            print("你身上带的钱不足赔付，只得临时借了一笔。不仅在大家面前丢了脸，还背上了一笔欠款")
+            assest -= need_assest
+            deval -=5
+        else:
+            print("你趁着领导不注意，悄悄地把一些东西塞到那个住户手里，住户很快笑着离开了，没有追究责任。")
+            assest -= need_assest
+            deval += 10
+    elif choice == "2": 
+        print("你选择无视当地住户，直接与领导开车离开。领导虽然很满意，但是因为那个住户举报，还是要明面上批评你一下。")
+        seval -= 5
+        deval += 5
+    elif choice == "3": 
+        print("你故作镇定，借口有事要离开，让领导一个人面对住户。虽然领导解决的问题，但是在回单位的路上领导沉默着瞅了你几眼。")
+        deval -= 10
+    elif choice == "4":
+        if exp >= 70:
+            print("你运用出色的聊天能力与住户交涉，化解矛盾。领导对你很满意。")
+            deval += 10
+        else:
+            print("你说了半天，结果让住户更生气了，举报到上级，你和你的领导都遭到了批评。")
+            seval -= 10
+            deval -= 10
+    else:
+        print("请重新输入！")
+        return event10()
+    return
+
+def event11():
+    print("有一次，你在跟随领导外出考察时，被人高空抛物砸中了。")
+    global assest, health, deval, seval
+    injured = random.randint(1, 10)
+    if injured == 1:
+        print("你被高空抛物砸中，当场晕厥，被紧急送往医院治疗。单位马上给你的手术付了款，还给了一些额外补贴。")
+        health -= 20
+        asset += 5
+    elif injured <= 8:
+        print("你被高空抛物砸中，受了轻伤。你可以报高自己伤情，以获取更多的保险赔偿。")
+        health -= 10
+        choice = input("你准备怎么做？（输入1尝试骗保，输入2或其他值不报高）：")
+        if choice == "1":
+            if random.random() < 0.4:
+                print("你成功骗到了保险金，似乎没有人发觉。")
+                assest += 10
+            else:
+                print("你的骗保行为被发现了，单位严肃批评了你，大家也对你的行为表示反感。")
+                seval -= 10
+                deval -= 5
+        else:
+            print("你选择不报高，事情就这么过去了。")
+    else:  # 没有受伤
+        print("你很幸运，除了脑壳疼了两分钟以外没受什么伤。")
+    return
+
+def event12():
+    print("一名下属工作勤恳，但由于规定限制学历而不能评先进。负责评选工作的你向上级指出，但领导要求按照规章办事。")
+    print("很快，有不明情况的人写匿名信为你的下属打抱不平，领导在一次公开会议上要求你马上处理。")
+    global seval, deval
+    choice = input("你打算怎么做？（输入1在会议上指出领导的错误，输入2马上处理，输入3会议上答应处理，但是仍旧不予通过）：")
+    if choice == "1":
+        print("你在会议上指出这是规章制度要求，让领导在下属前丢了面子，惹得他很不开心。")
+        deval -= 10
+    elif choice == "2": 
+        if random.random() < 0.8:
+            print("你按领导要求马上处理，但之后被高层查出问题遭到批评。你向领导汇报，领导却说他从来没有让你违背原则。")
+            seval -= 10
+            deval -= 5
+        else:
+            print("你按时处理问题，领导和下属都很满意。")
+            deval += 5
+    elif choice == "3":
+        print("你表面答应，实际上置之不理，被发现后，下属们对你很不满，领导批评你不思改进。")
+        deval -= 5
+        seval -= 5
+    else:
+        print("请重新输入！")
+        return event12()
+    return
+
+def event13():
+    print("单位即将迎接安全卫生检查，需要马上提交一套资料。但是你的领导要求你在资料之外增加一些可有可无的文件。")
+    global assest, health, seval, deval
+    choice = input("你打算怎么做？（输入1按照领导要求增加文件，输入2不增加文件）：")
+    if choice == "1":
+        if random.random() < 0.3:
+            print("你按照领导要求紧急加班通宵赶工增加文件，虽然这些文件上面看都没看，但是因为你交的文件是最厚的，所以检查组表扬了你们单位。")
+            seval += 5
+            health -= 10
+        else:
+            print("由于临时增加的文件太多了，你和你的下属都非常不满，一起推脱，结果连本应该完成的资料都没完成。检查组和领导狠狠批评了你们一顿。")
+            seval -= 5
+            deval -= 5
+            health -= 5
+    elif choice == "2":
+        print("你没有增加领导要求的文件，虽然检查组对材料很满意，但领导觉得你在无视他的要求，没有用高标准高站位要求自己。")
+        deval -= 10
+    else:
+        print("请重新输入！")
+        return event13()
+    return
+
+def event14():
+    print("领导要求你统计填写一批人员信息，但是你很清楚，这个信息其他部门早就统计过。")
+    global health, seval, deval
+    choice = input("你打算怎么做？（输入1自己从头统计并填写，输入2向领导说明，希望领导向其他部门索要数据，输入3尝试建立一整套可以统计人员信息的系统）：")
+    if choice == "1":
+        print("你花费了很多精力来完成统计，结果另一个领导又要求你统计一批已有的信息，你不得不通宵赶工。")
+        health -= 10
+    elif choice == "2":
+        print("你向领导说明，希望领导向其他部门索要数据，但领导认为你不够配合，说了你一顿。")
+        deval -= 10
+    elif choice == "3":
+        print("你主张建立新的信息管理系统，高层得知后高度表扬了你，但是和你同级的人都很不爽，漏报少报，让你系统的信息更新不及时，急剧增加了你的工作量。最后你不得不放弃使用这个系统。")
+        seval += 10
+        deval -= 5
+        health -= 15
+    else:
+        print("请重新输入！")
+        return event14()
+    return
+
+def event15():
+    print("你的领导说：“我主要协调工作，不能光干具体活”，将一大摞具体工作交给了你。")
+    global health, seval, deval
+    choice = input("你打算怎么做？（输入1让下一级干具体活，输入2自己干具体活）：")
+    if choice == "1":
+        print("你对你的下属说，“我主要协调工作，不能光干具体活”，然后出去和领导吃大排档，美其名曰交流沟通。领导夸你懂协调沟通，能合理安排工作。")
+        deval -= 5
+        seval += 5
+    elif choice == "2":
+        print("你自己干具体活，光荣牺牲了自己的健康。")
+        health -= 10
+        seval += 5
+    else:
+        print("请重新输入！")
+        return event15()
+    return
+
+def event16():
+    global assest, ddegree
+    print("入职多年，你的晋升速度永远比老同学们慢。思来想去，或许和你的学历有些关系......")
+    if ddegree >= 4:
+        print("不对不对，你已经是博士研究生了，想想也不应该是学历阻碍了自己的晋升。")
+        return
+    choice = input("你打算怎么做？（输入1利用权钱关系提高学历，输入2放到以后再说）：")
+    if choice == "1":
+        cost = random.randint(50,200)
+        if assest >= cost:
+            print("你花费了{}资金，借助权钱关系，仅付出了一点点时间精力就让自己的学历有所提升。".format(cost))
+            assest -= cost
+            ddegree += 1
+            degree = degrees[ddegree]
+        else:
+            print("你的资金不足，此路不通。")
+    elif choice == "2":
+        print("你想了想，觉得还是慢慢来为好。")
+    else:
+        print("请重新输入！")
+        return event16()
+    return 
+
+def event17():
+    print("家里突然打来电话，你爸重病住院了。但是你现在身处外地，手上刚好有一些上头安排的紧急工作。")
+    global health, assest, seval, deval
+    choice = input("你打算怎么做？（输入1先处理工作再去看父亲，输入2立刻去看父亲，输入3不回去看父亲）：")
+    if choice == "1":
+        if random.random() < 0.3:
+            print("你加班熬夜尽快处理完了工作，然后连夜坐车前往医院看望父亲。父亲很开心，病痛也没有那么严重了。")
+            health -= 5
+        else:
+            print("俗话说心急吃不了热豆腐，你心里一直挂念着父亲的事情，结果工作没做好被领导批评，也没能及早去看望父亲。虽然父亲知道你忙体谅你，但是你心里还是有些过不去。")
+            health -= 10
+            seval -= 5
+    elif choice == "2":
+        print("你放下工作，立刻前往医院看望了父亲。因为工作没完成被罚了一笔，领导事后批了你一顿，但是毕竟谁家都出过变故，领导也没有苛责你。")
+        health += 5
+        seval -= 5
+        assest -= 3
+    elif choice == "3":
+        print("你挂掉电话，当作这件事没发生，继续干着手上的工作。最后工作完成地很好，拿了一笔奖金。父亲后来想着你忙怕打扰你，就不怎么跟你联系了。")
+        assest += 5
+        seval += 5
+        deval -= 10 #因为你连父亲重病都不关心，单位里同事背后嚼舌根。
+    else:
+        print("请重新输入！")
+        return event17()
+    return
+
+def event18():
+    print("最近单位工作多，小孩就只能交给对象照顾。某次加班凌晨回家，因为家庭和工作的问题吵了一架。")
+    global health, assest, seval
+    choice = input("你打算怎么做？（输入1优先照顾家庭，输入2优先处理工作，输入3尝试两头兼顾）：")
+    if choice == "1":
+        print("你想了很多，最后觉得少赚点钱没事，还是要多陪陪家人。一起逛街、一起闲聊、一起......你感觉工作的疲惫被扫除一空了。")
+        health += 10
+        assest -= 5
+    elif choice == "2":
+        print("吵完架后你们两个都私底下抹了抹眼泪。但生活如此又能如何呢？赚钱养家，平淡又沉重的四个字。")
+        health -= 5
+        assest += 5
+        seval += 5
+    elif choice == "3":
+        if tec>100 and exp>100:
+            print("你尽力平衡好了家庭与工作，但是说实话，和家人相处的快乐被两头需要兼顾的费心一点点消磨殆尽了。")
+            assest += 5
+            seval += 5
+        else:
+            print("并不是所有人都可以平衡家庭与工作。大部分人追逐两只兔子的结果是一个都追不到。")
+            assest -= 3
+            health -= 3
+    else:
+        print("请重新输入！")
+        return event18()
+    return
+
+def event19():
+    print("最近传闻什么什么虚拟，什么什么智能的东西，行情比较好。同事们都准备买一点股票追涨。")
+    global assest
+    choice = input("你打算怎么做？（输入1跟风买一点，输入2搏一搏大的，输入3不参与）")
+    if choice == "1":
+        if random.random() < 0.5:
+            print("果不其然，股票涨了，你和同事们都赚了一些钱。但是因为同事们投入多，赚得比你多几倍。你心里有些小小的不平衡。")
+            assest += 3
+        else:
+            print("股票跌了，你和同事们及时抛售，回了点血，但总而言之是亏的。搞得大家都不爽。")
+            assest -= 3
+    elif choice == "2":
+        if random.random() < 0.2:
+            print("搏一搏，单车变摩托，全国都刮起了炒股风，你自然是大赚一笔，当热潮过去，你及时抛售，笑看写字楼天台的人群。")
+            assest += 10
+        else:
+            print("当你还沉浸在一夜暴富的美梦中时，幕后操盘者们利用几次小小的公众舆论事件，就让你的股票飞流直下三千尺。你急火攻心，一口气差点没缓过来。")
+            assest -= 15
+            health -= 5
+    elif choice == "3":
+        print("任凭股市如何波涛汹涌，你都不去关注。同事们在这波热潮种赚翻了，甚至有一个人直接收获财富自由，辞职旅游去了。")
+    else:
+        print("请重新输入！")
+        return event19()
+    return
+
+def event20():
+    print("你的朋友给你推荐了一个赚快钱的地方，你去了一趟发现其实是地下赌博场所。")
+    global assest, seval, health, dposition, position, positions
+    choice = input("你打算怎么做？（输入1检举赌博场所，输入2试一试水，输入3远远避开）")
+    if choice == "1":
+        print("你检举了赌博场所，拿了一点钱，但是赌博场所没有被查办，某日，你被蒙面人拉入小巷狠狠揍了一顿。")
+        assest += 2
+        health -= 5
+    elif choice == "2":
+        if random.random() < 0.3:
+            print("你试了试水，赚了几笔，结果沉迷其中，没几次就大亏，还被人匿名举报了。你遭到了严肃批评，并被降职。")
+            assest -= 5
+            seval -= 10
+            dposition -= 1
+            if dposition < 0:
+                dposition = 0
+            position = positions[dposition]
+        else:
+            print("你试了试水，赚了好几笔钱之后见好就收。庄家对你很不满，骚扰了你一段时间，但是随着时间推移，庄家不再关注你了。")
+            assest += 8
+            health -= 2
+    elif choice == "3":
+        print("你觉得这类场所碰不得。你就当作没从朋友那听说过这件事。")
+    else:
+        print("请重新输入！")
+        return event20()
+    return
+
+
+#我准备做一个比较大型的酒局事件，可能涉及到一次酒局的多个阶段。参照著名的《沙东桌游》。
+# 喝酒量，初始为0
+drink = 0
+
+# 第一个阶段，必定进行两次干杯
+def stage0():
+    global drink, deval
+    print("酒局将要开始，按照惯例，酒局开始要先全体干两杯酒。")
+    choice1 = input("你可以：输入1干杯；输入2故意迟到；输入3假喝")
+    if choice1 == "2":
+        if random.random() < 0.6:
+            print("你故意迟到，打算不喝这两杯酒。但是你的小算盘显然没打成，因为迟到，领导同事们叫嚷着罚你三杯。")
+            deval -= 2
+            drink += 3
+        else:
+            print("你故意迟到，当你到酒局上的时候大家已经干了一杯酒了，你就坐以后陪他们喝了一杯。")
+            drink += 1
+            deval -= 2
+    elif choice1 == "1":
+        print("领导之间相互道贺，然后带着大家一起干杯。你跟着领导干了两杯酒。")
+        drink += 2
+    elif choice1 == "3":
+        print("你喝了一口含在嘴里，装作低头拿东西把酒吐了出去。但是演技太拙劣，领导们一眼看穿，没有明面指出来。")
+        deval -= 5
+    else:
+        print("请重新输入！")
+        return stage0()
+
+# 结尾阶段，可以通过结账避免喝酒
+def stage1():
+    global assest, drink, deval
+    print("肴核既尽，杯盘狼藉，天下没有不散的筵席。酒局将要结束了，大伙吃饱喝足，开始聊一些无关紧要的话题。你感觉过会儿还要最后干一次杯。")
+    choice2 = input("你可以：输入1干一杯；输入2假喝；输入3偷偷结账以离开酒席：")
+    if choice2 == "1":
+        print("果不其然，两个领导见时候差不多了，招呼大家最后再喝一次。你一饮而尽。")
+        drink += 1
+    elif choice2 == "2":
+        print("领导们最后果然要求所有人再喝一杯。你捏着杯子猛一抬手，几乎所有酒都洒了出去，你喝了个寂寞。虽然很容易被一眼看穿，但是领导们都有些醉醺醺的，没怎么注意你。")
+        deval -= 2
+    elif choice2 == "3":
+        print("这酒你是一点也不想喝了，你离席去柜台结账。虽然大家知道你没喝最后一杯，但是毕竟你花的钱，也不会怎么怪罪你。你的领导甚至因为自己的下属比兄弟单位明事理，还有些满意")
+        deval +=3
+        assest -= 5
+    else:
+        print("请重新输入！")
+        return stage1()
+
+# 中途1之纠纷冲突
+def stage2():
+    global drink, deval
+    print("喝了一会儿，有一个和你不对付的同事酒量差，有些上头。用不满的语气和领导对话，还在领导和兄弟单位领导聊天时插嘴。")
+    choice3 = input("你可以：输入1把同事带出去醒醒酒；输入2转移话题让同事没法插嘴；输入3：任由他多喝")
+    if choice3 == "1":
+        print("你带着同事出去醒酒，结果酒局上你们单位的人只剩两三个。弄得领导有些许尴尬。")
+        deval -= 3
+    elif choice3 == "2":
+        if random.random() < 0.7:
+            print("你敬了一杯酒，成功转移话题。同事插不上嘴，就只能沉默了。")
+            deval += 5
+            drink += 1
+        else:
+            print("你尝试转移话题，结果不小心撞到了同事的痛处，同事直接开始言语攻击你。弄得领导在兄弟单位面前很没面子。")
+            deval -= 5
+    elif choice3 == "3":
+        print("你的同事果真上头了，直接和领导争执起来。你就在一旁看戏。领导对你的不作为有些不满，但是你肯定，这个同事将无法再在职场上对你造成明面威胁。")
+        seval += 10
+        deval -= 5
+    else:
+        print("请重新输入！")
+        return stage2()
+
+# 中途2之未实装
+def stage3():
+    global drink, deval
+    print("")
+    choice4 = input("")
+    if choice4 == "1":
+        print("")
+    elif choice4 == "2":
+        print("")
+    elif choice4 == "3":
+        if random.random() < 0.5:
+            print("")
+ 
+        else:
+            print("")
+    else:
+        print("请重新输入！")
+        stage3()
+
+# 中途3之AI写的没修改
+def stage4():
+    global drink, dark_evaluation
+    print("第五阶段，自由选择")
+    choice5 = input("输入1喝干最后一杯，然后离开；输入2继续喝酒，直到喝不下为止；输入3假扮敬酒不吃吃罚酒，但是一旦被发现就要喝完整瓶酒：")
+    if choice5 == "1":
+        print("你喝干了最后一杯酒，然后礼貌地离开了。")
+        drink += 1
+        dark_evaluation += 10
+    elif choice5 == "2":
+        print("你继续喝酒，直到喝不下为止。")
+        while True:
+            choice = input("请问你还要喝吗？输入1表示喝一杯，输入2表示喝一整瓶酒：")
+            if choice == "1":
+                print("你又喝了一杯酒。")
+                drink += 1
+            elif choice == "2":
+                print("你喝完了一整瓶酒。很快就晕了过去。")
+                drink += 10
+                dark_evaluation -= 20
+        # 由于这个while循环不可能退出，所以这里不需要其他代码了
+    elif choice5 == "3":
+        if random.random() < 0.5:
+            print("你假扮敬酒不吃吃罚酒，但是被人发现了。你不得不喝完整瓶酒，暗中评价下降了。")
+            drink += 10
+            dark_evaluation -= 20
+        else:
+            print("你假扮敬酒不吃吃罚酒，但是成功骗过了大家。")
+    else:
+        print("你的输入不合法，请重新进行选择。")
+        stage4()
+
+# 酒场主循环
+def event21():
+    drink = 0
+    print("某日，单位组织了一次酒局，你的领导、兄弟单位的领导都会出席。")
+    stage0()
+    stage_chance = randint(1,3)
+    if stage_chance == 1:
+        stage2()
+    elif stage_chance == 2:
+        stage2()  # 这里改成2/3/4等就可以把酒局stage实装了。
+    elif stage_chance ==3:
+        stage2()
+    stage1()
+
+#时间判定与游戏结束判定函数
+def time_trigger():
+    global age, exp, deval, health, assest, seval, dposition, ddegree, degree, positions, position, turn
+    events = [event1, event2, event3, event4, event5, event6, event7, event8, event9, event10, event11, event12, event13, event14, event15, event16, event17, event18, event19, event20, event21]
+    for i in range(3):
+        events[random.randint(0, 20)]()
+        time.sleep(5)
+    print('又是新的一年......')
+    turn += 1
+    age += 1
+    exp += 1#你在职场混迹久了，人际交往能力有一定的提高
+    if age > 65:
+        print('你已经退休了，游戏结束')
+        return endgame()
+    if assest < 0:
+        print('你由于理财不善，负债累累，单位考虑到你的情况，给了你一些补助。但是显然，大多数人心底里看不起穷光蛋')
+        deval -= 5
+        return endgame()
+    if deval < -20:
+        print('由于你在多数上下级心目中的形象很差，某次你犯了一个不大不小的错误，你的下级直接让错误扩大化，并向上级检举，你遭到了严肃批评并被撤职，多年以后直至退休也没有找到晋升的机遇，游戏结束')
+        return endgame()
+    if health <= 0:
+        print('你的各种行为严重地影响了你的健康，在某次日常办公后，想起身上个厕所的你突然病发倒地，同事立刻将你送医，但抢救无效，最终死亡，游戏结束')
+        return endgame()
+    if seval < -10:
+        print('你所受到的批评处分远远超过了你的贡献成就，逾越了体系的容忍底线。与同级的其他人比较，你毫无竞争优势，只能在当前的位置上当一天和尚撞一天钟，直至年老退休，游戏结束')
+        return endgame()
+    if dposition == 0 and deval >= 30 and seval >= 30 and ddegree>= 2 and turn>=5 :
+        print("入职多年以后，你终于凑齐了天时、地利、人和。某次人事变动，你敏锐地抓住这次机会，和领导打点好关系。最后晋升为了副处级干部。")
+        dposition += 1
+        position = positions[dposition]
+    if dposition == 1 and deval >= 70 and seval >= 70 and ddegree>= 3 and turn>=10 :
+        print("升到副处之后，你继续在这摊浑水中扑腾，超凡的运气给你带来了晋升正处的机会。")
+        dposition += 1
+        position = positions[dposition]
+        
+
+    return True
+#姓名输入
+name = input('请输入你的姓名：')
+# 打印属性
+print('以下是你的基本属性：')
+print('姓名:', name)
+print('年龄:', age)
+print('性别:', sex)
+print('职位:', position)
+print('学历:', degree)
+print('资产:', assest)
+print('技术能力:', tec)
+print('表达能力:', exp)
+print('明面评价:', seval)
+print('暗中评价:', deval)#实际游戏中该数值应当不显示。
+print('身心健康值:', health)
+time.sleep(5)
+print('背景故事:')
+# 结合属性生成背景故事
+if age <= 35:
+    print('经过长期鏖战，你通过了公务员考试，终于可以迈入官场了。')
+    if seval > 5:
+        print('由于你在入职一开始几天表现的不错，并且曾经有过一些成果，小有名气，大家明面上对你的评价不错。')
+    else:
+        print('由于你此前默默无闻，并且没有什么显著的成果，所以大家明面上暂时没有对你做出什么正面评价，当然也没有什么负面的。')
+    if deval > 15:
+        print('另外，你的父母在这个单位有一些特殊的关系，早早地带你认识了一些领导，大家暗中已经形成了对你的认同。')
+    elif deval >0:
+        print('另外，作为一个新来的，大家都对你不是那么熟悉，暗地里还没有形成对你的评价。')
+    else:
+        print('但是很不幸，你来到的单位早已形成一个排外的关系网，大家都对新来的你怀有警惕心，但是没有人在明面上显露出来。')
+else:
+    print('你已经在公务员体系中工作多年，但仍然只是一名普通的科员。')
+    if seval > 5:
+        print('由于你长期勤勤恳恳，干出了一些成果，所以单位里大多数人对你的评价不错。')
+    else:
+        print('虽然你勤勤恳恳，但是实在平平无奇，所以单位也没法明面上对你做什么大的表扬。')
+    if deval > 15:
+        print('另外，你在单位里挺会来事，几次处理人际关系也都不错，大家暗地里对你评价比较高。')
+    elif deval >0:
+        print('由于你过去比较沉默，大家都不太了解你的真实面貌。')
+    else:
+        print('你过去虽然勤恳工作，但是无意间得罪了一些人，大家暗中对你的评价不太好。')
+print(f'在当代社会，哪怕已经成为了公务员，学历也非常重要。你怀揣着你{degree}的学历，希望这个学历能够为晋升起到一些作用——至少不要拖后腿。')
+if health < 70:
+    print('你的身体有些亚健康，或许需要多多注意一下。')
+else:
+    print('你的身体比较健康。偶尔会进行一些锻炼。')
+if assest < 15:
+    print('你的家境一般，经济实力较为单薄，但是也算看得过去。')
+elif assest <25:
+    print('你的家境不错，加上自己此前的一些理财收入，生活还是挺滋润的。')
+else:
+    print('相比同职位的其他人，你的家境已经算得上优渥了，前几年的投机也让你快速积累了一些资本。')  
+print('无论如何，你需要在官场上提高自己的声誉和影响力，以晋升到更高的地位。你的一切选择都可能影响你的生涯。')
+
+time.sleep(10)
+
+#正式开始游戏
+while time_trigger():
+    time.sleep(4)
+    print('以下是你当前的状态：')
+    print('姓名:', name)
+    print('年龄:', age)
+    print('性别:', sex)
+    print('职位:', position)
+    print('学历:', degree)
+    print('资产:', assest)
+    print('技术能力:', tec)
+    print('表达能力:', exp)
+    print('明面评价:', seval)
+    print('暗中评价:', deval)
+    print('身心健康值:', health)
+    time.sleep(5)
+    pass
